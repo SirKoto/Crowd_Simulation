@@ -17,6 +17,9 @@ public class Bot_AStarAI : MonoBehaviour
     private List<Vector2> m_goal_queue = new List<Vector2>();
     private int m_goal_idx = 0;
 
+    private Coroutine m_rotate_coroutine = null;
+    private Coroutine m_direction_coroutine = null;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -36,10 +39,6 @@ public class Bot_AStarAI : MonoBehaviour
         {
             setup_goal_and_route();
         }
-
-        // Collisions may budge the agent. Correct
-        Vector2 delta = m_goal - m_init;
-        m_direction = delta.normalized;
     }
 
     private void OnDrawGizmos()
@@ -63,10 +62,9 @@ public class Bot_AStarAI : MonoBehaviour
 
     private bool is_correct_direction()
     {
-        Vector2 dir = m_goal - (new Vector2(transform.position.x, transform.position.z));
-        float dot = Vector2.Dot(dir, m_direction);
-
-        return dot >= 0.0f;
+        // Because the path regenerates each time
+        // We do not need to check if the direction is correct
+        return true;
     }
 
     public void regenerate_A_star()
@@ -87,17 +85,17 @@ public class Bot_AStarAI : MonoBehaviour
         if (m_goal_queue.Count > 0)
         {
             m_goal = m_goal_queue[m_goal_idx++];
-
-            Vector2 delta = m_goal - m_init;
-            m_direction = delta.normalized;
         } else
         {
             m_direction = Vector2.zero;
             m_goal = m_init;
         }
 
-        //StartCoroutine(rotate_agent(m_direction, 2.0f));
-
+        if(m_direction_coroutine != null)
+        {
+            StopCoroutine(m_direction_coroutine);
+        }
+        m_direction_coroutine = StartCoroutine(smooth_change_direction(0.2f));
     }
 
     private void setup_goal_and_route()
@@ -130,9 +128,11 @@ public class Bot_AStarAI : MonoBehaviour
             }
         }
 
-        Vector2 delta = m_goal - m_init;
-        m_direction = delta.normalized;
-        //StartCoroutine(rotate_agent(m_direction, 2.0f));
+        if (m_direction_coroutine != null)
+        {
+            StopCoroutine(m_direction_coroutine);
+        }
+        m_direction_coroutine = StartCoroutine(smooth_change_direction(0.2f));
     }
 
     private IEnumerator rotate_agent(Vector2 look_to, float duration)
@@ -150,5 +150,27 @@ public class Bot_AStarAI : MonoBehaviour
         }
 
         gameObject.transform.rotation = end;
+    }
+
+    private IEnumerator smooth_change_direction(float duration)
+    {
+        Vector2 start_dir = m_direction;
+        Vector2 end_dir = (m_goal - m_init).normalized;
+
+        if (m_rotate_coroutine != null)
+        {
+            StopCoroutine(m_rotate_coroutine);
+        }
+        m_rotate_coroutine = StartCoroutine(rotate_agent(end_dir, 1.0f));
+
+        float t = 0.0f;
+        while (t < 1.0f)
+        {
+            m_direction = Vector2.Lerp(start_dir, end_dir, t);
+            t += Time.deltaTime / duration;
+            yield return null;
+        }
+
+        m_direction = end_dir;
     }
 }
