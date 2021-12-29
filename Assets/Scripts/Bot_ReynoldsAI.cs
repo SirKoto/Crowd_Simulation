@@ -32,7 +32,9 @@ public class Bot_ReynoldsAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 collision_avoidance3 = m_manager.get_collision_avoidance(gameObject.transform.position);
+        Vector3 collision_avoidance3 = 
+            m_manager.get_collision_avoidance(gameObject.transform.position) +
+            m_manager.get_agent_avoidance(gameObject.transform.position);
         Vector2 collision_avoidance = new Vector2(collision_avoidance3.x, collision_avoidance3.z);
         Vector2 forward = new Vector2(transform.forward.x, transform.forward.z);
         float dot = Vector2.Dot(forward, collision_avoidance);
@@ -63,7 +65,9 @@ public class Bot_ReynoldsAI : MonoBehaviour
         }
 
         Gizmos.color = Color.red;
-        Vector3 collision_avoidance3 = m_manager.get_collision_avoidance(gameObject.transform.position);
+        Vector3 collision_avoidance3 =
+                    m_manager.get_collision_avoidance(gameObject.transform.position) +
+                    m_manager.get_agent_avoidance(gameObject.transform.position);
         Gizmos.DrawLine(transform.position, transform.position + collision_avoidance3);
     }
 

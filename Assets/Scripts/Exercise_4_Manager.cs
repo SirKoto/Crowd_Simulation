@@ -23,6 +23,13 @@ public class Exercise_4_Manager : MonoBehaviour
     [SerializeField]
     private float m_collision_avoidance_strength = 0.6f;
 
+    [SerializeField]
+    private float m_agent_avoidance_radius = 1.0f;
+    [SerializeField]
+    private float m_agent_avoidance_pow = 3.0f;
+    [SerializeField]
+    private float m_agent_avoidance_strength = 0.2f;
+
     public A_Grid m_grid;
 
     private List<GameObject> m_walls = new List<GameObject>();
@@ -97,6 +104,38 @@ public class Exercise_4_Manager : MonoBehaviour
         return m_collision_avoidance_strength / sum_weight * dir;
     }
 
+    public Vector3 get_agent_avoidance(Vector3 pos)
+    {
+        Vector3 dir = Vector3.zero;
+        float radius = m_agent_avoidance_radius;
+
+        float sum_weight = 0.0f;
+        foreach (GameObject obj in m_agents)
+        {
+            Vector3 delta = pos - obj.transform.position;
+            float sq_dist = Vector2.SqrMagnitude(new Vector2(delta.x, delta.z));
+            if(sq_dist < 1e-3)
+            {
+                continue;
+            }
+            if (sq_dist < radius * radius)
+            {
+                float dist = Mathf.Sqrt(sq_dist);
+                float t = 1.0f - dist / m_agent_avoidance_radius;
+                float w = Mathf.Pow(t, m_agent_avoidance_pow);
+                sum_weight += w;
+                dir += w * delta.normalized;
+            }
+        }
+
+        if (sum_weight <= 1e-4f)
+        {
+            return Vector3.zero;
+        }
+
+        return m_agent_avoidance_strength / sum_weight * dir;
+    }
+
     private void OnDrawGizmos()
     {
 
@@ -105,6 +144,11 @@ public class Exercise_4_Manager : MonoBehaviour
         foreach (GameObject obj in m_walls)
         {
             Gizmos.DrawWireSphere(obj.transform.position + new Vector3(0.5f, 0.0f, 0.5f), radius);
+        }
+        Gizmos.color = Color.grey;
+        foreach(GameObject obj in m_agents)
+        {
+            Gizmos.DrawWireSphere(obj.transform.position, m_agent_avoidance_radius);
         }
     }
 
