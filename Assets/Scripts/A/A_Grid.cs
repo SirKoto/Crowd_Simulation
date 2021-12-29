@@ -7,11 +7,13 @@ public class A_Grid
 {
     private uint m_resolution;
     private HashSet<Vector2Int> m_occupied_pos;
+    private Dictionary<Vector2Int, float> m_penalized_pos;
 
     public A_Grid(uint resolution)
     {
         m_resolution = resolution;
         m_occupied_pos = new HashSet<Vector2Int>();
+        m_penalized_pos = new Dictionary<Vector2Int, float>();
     }
 
     public void add_obstacle(Vector2Int pos)
@@ -24,9 +26,45 @@ public class A_Grid
         return m_occupied_pos.Contains(pos);
     }
 
+    public void reset_penalizations()
+    {
+        m_penalized_pos.Clear();
+    }
+
+    public void add_penalization(Vector2Int pos)
+    {
+        if (m_penalized_pos.ContainsKey(pos))
+        {
+            m_penalized_pos[pos] += 1.0f;
+        }
+        else
+        {
+            m_penalized_pos.Add(pos, 1.0f);
+        }
+    }
+
+    private float get_penalization(Vector2Int pos)
+    {
+        float value = 0.0f;
+        if(m_penalized_pos.TryGetValue(pos, out value))
+        {
+            return value * 8.0f;
+        }
+        else
+        {
+            return 0.0f;
+        }
+
+    }
+
     public float heuristic(Vector2Int pos, Vector2Int goal)
     {
         return (pos - goal).sqrMagnitude;
+    }
+
+    public float heuristic_g(Vector2Int pos, Vector2Int next_pos)
+    {
+        return get_penalization(next_pos) + heuristic(pos, next_pos);
     }
 
     public bool in_bounds(Vector2Int pos)
@@ -84,7 +122,7 @@ public class A_Grid
             Vector2Int new_pos = pos + new Vector2Int(1, 0);
             if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes.ContainsKey(new_pos))
             {
-                AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                 priorityQueue.Enqueue(new_pos, dat.g + dat.h);
                 visitedNodes.Add(new_pos, dat);
@@ -92,7 +130,7 @@ public class A_Grid
             new_pos = pos + new Vector2Int(-1, 0);
             if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes.ContainsKey(new_pos))
             {
-                AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                 priorityQueue.Enqueue(new_pos, dat.g + dat.h);
                 visitedNodes.Add(new_pos, dat);
@@ -100,7 +138,7 @@ public class A_Grid
             new_pos = pos + new Vector2Int(0, -1);
             if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes.ContainsKey(new_pos))
             {
-                AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                 priorityQueue.Enqueue(new_pos, dat.g + dat.h);
                 visitedNodes.Add(new_pos, dat);
@@ -108,7 +146,7 @@ public class A_Grid
             new_pos = pos + new Vector2Int(0, 1);
             if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes.ContainsKey(new_pos))
             {
-                AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                 priorityQueue.Enqueue(new_pos, dat.g + dat.h);
                 visitedNodes.Add(new_pos, dat);
@@ -187,7 +225,7 @@ public class A_Grid
                 Vector2Int new_pos = pos + new Vector2Int(1, 0);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes0.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue0.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes0.Add(new_pos, dat);
@@ -195,7 +233,7 @@ public class A_Grid
                 new_pos = pos + new Vector2Int(-1, 0);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes0.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue0.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes0.Add(new_pos, dat);
@@ -203,7 +241,7 @@ public class A_Grid
                 new_pos = pos + new Vector2Int(0, -1);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes0.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue0.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes0.Add(new_pos, dat);
@@ -211,7 +249,7 @@ public class A_Grid
                 new_pos = pos + new Vector2Int(0, 1);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes0.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue0.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes0.Add(new_pos, dat);
@@ -234,7 +272,7 @@ public class A_Grid
                 Vector2Int new_pos = pos + new Vector2Int(1, 0);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes1.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue1.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes1.Add(new_pos, dat);
@@ -242,7 +280,7 @@ public class A_Grid
                 new_pos = pos + new Vector2Int(-1, 0);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes1.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue1.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes1.Add(new_pos, dat);
@@ -250,7 +288,7 @@ public class A_Grid
                 new_pos = pos + new Vector2Int(0, -1);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes1.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue1.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes1.Add(new_pos, dat);
@@ -258,7 +296,7 @@ public class A_Grid
                 new_pos = pos + new Vector2Int(0, 1);
                 if (in_bounds(new_pos) && !is_obstacle(new_pos) && !visitedNodes1.ContainsKey(new_pos))
                 {
-                    AStarDat dat = new AStarDat(prev_dat.g + heuristic(pos, new_pos), heuristic(new_pos, goal), pos);
+                    AStarDat dat = new AStarDat(prev_dat.g + heuristic_g(pos, new_pos), heuristic(new_pos, goal), pos);
 
                     priorityQueue1.Enqueue(new_pos, dat.g + dat.h);
                     visitedNodes1.Add(new_pos, dat);
@@ -291,6 +329,7 @@ public class A_Grid
             pathAccumulated.Add(retrieve_pos);
             retrieve_pos = retrieve_dat.parent;
         }
+        pathAccumulated.Add(goal);
 
         return pathAccumulated;
     }

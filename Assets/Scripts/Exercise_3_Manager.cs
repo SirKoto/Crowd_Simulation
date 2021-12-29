@@ -68,9 +68,18 @@ public class Exercise_3_Manager : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(5.0f);
+            yield return new WaitForSeconds(.5f);
+
+            m_grid.reset_penalizations();
 
             foreach (GameObject obj in m_agents)
+            {
+                Vector3 pos3 = obj.transform.position;
+                Vector2Int pos2 = Vector2Int.FloorToInt(new Vector2(pos3.x + get_domain_half_size(), pos3.z + get_domain_half_size()));
+                m_grid.add_penalization(pos2);
+            }
+
+                foreach (GameObject obj in m_agents)
             {
                 obj.GetComponent<Bot_AStarAI>().regenerate_A_star();
             }
