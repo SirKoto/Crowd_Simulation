@@ -15,12 +15,66 @@ public class Exercise_3_Manager : MonoBehaviour
 
     [SerializeField]
     private GameObject m_gameObject_to_instance = null;
+    [SerializeField]
+    private GameObject m_wall_gameObject = null;
 
-    private A_Grid m_grid;
+    public A_Grid m_grid;
+
+    private List<GameObject> m_agents = new List<GameObject>();
 
     public float get_domain_half_size()
     {
         return (float)m_domain_size / 2.0f;
+    }
+
+
+    public Vector2 get_random_empty_pos_0_size()
+    {
+        Vector2Int pos;
+        do
+        {
+            pos = new Vector2Int(Random.Range(0, (int)m_domain_size), Random.Range(0, (int)m_domain_size));
+        } while (m_grid.is_obstacle(pos));
+
+        Vector2 finalPos = pos + new Vector2(Random.Range(0.2f, 0.8f), Random.Range(0.2f, 0.8f));
+        return finalPos;
+    }
+
+    public Vector2 get_random_empty_pos()
+    {
+        Vector2Int pos;
+        do
+        {
+            pos = new Vector2Int(Random.Range(0, (int)m_domain_size), Random.Range(0, (int)m_domain_size));
+        } while (m_grid.is_obstacle(pos));
+
+        Vector2 finalPos = pos + new Vector2(Random.Range(0.2f, 0.8f) - get_domain_half_size(), Random.Range(0.2f, 0.8f) - get_domain_half_size());
+
+        if(finalPos.x < -m_domain_size || finalPos.x > m_domain_size)
+        {
+            Debug.LogError("Error: bad position x " + finalPos.x.ToString());
+        }
+
+        if (finalPos.y < -m_domain_size || finalPos.y > m_domain_size)
+        {
+            Debug.LogError("Error: bad position y " + finalPos.y.ToString());
+        }
+
+        return finalPos;
+    }
+
+
+    private IEnumerator regenerate_A_star()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(5.0f);
+
+            foreach (GameObject obj in m_agents)
+            {
+                obj.GetComponent<Bot_AStarAI>().regenerate_A_star();
+            }
+        }
     }
 
     // Start is called before the first frame update
@@ -40,28 +94,48 @@ public class Exercise_3_Manager : MonoBehaviour
             Debug.LogError("Game object to instance not assigned");
         }
 
+        if(m_wall_gameObject == null)
+        {
+            Debug.LogError("Wall Game Object not assigned");
+        }
+
         m_grid = new A_Grid(m_domain_size);
+
+        // Instantiate walls
+        Vector3 offset = new Vector3(get_domain_half_size(), 0.0f, get_domain_half_size());
+        Random.InitState(15);
+        for (int i = 0; i < m_domain_size; ++i)
+        {
+            for(int j = 0; j < m_domain_size; ++j)
+            {
+                if (Random.value < 0.1f)
+                {
+                    m_grid.add_obstacle(new Vector2Int(i, j));
+                    Vector3 pos = new Vector3(i, 0.0f, j) - offset;
+                    GameObject.Instantiate(m_wall_gameObject, pos, Quaternion.identity, gameObject.transform);
+                }
+            }
+        }
+
+        // Instantiate agents
 
         GameObject duplicate = GameObject.Instantiate(m_gameObject_to_instance, Vector3.zero, Quaternion.identity, gameObject.transform);
 
 
         duplicate.AddComponent<Bot_AStarAI>();
 
-        float size = get_domain_half_size() - 0.5f;
         for (uint i = 0; i < m_num_agents; ++i)
         {
-            Vector3 pos = new Vector3(Random.Range(-size, size), 0.0f, Random.Range(-size, size));
-            GameObject.Instantiate(duplicate, pos, Quaternion.identity, gameObject.transform);
+            Vector2 pos2 = get_random_empty_pos();
+            Vector3 pos = new Vector3(pos2.x, 0.0f, pos2.y);
+            GameObject obj = GameObject.Instantiate(duplicate, pos, Quaternion.identity, gameObject.transform);
+            m_agents.Add(obj);
         }
 
         GameObject.Destroy(duplicate);
 
-        List<Vector2> path = m_grid.get_path_to(Vector2.zero, new Vector2(m_domain_size - 1, m_domain_size / 2));
-
-        foreach( Vector2 p in path)
-        {
-            Debug.Log(p);
-        }
+        // Start regeneration courutines
+        StartCoroutine(regenerate_A_star());
     }
 
     // Update is called once per frame

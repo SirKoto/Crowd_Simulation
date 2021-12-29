@@ -24,7 +24,7 @@ public class AgentInterface : MonoBehaviour
         Vector3 vel3 = new Vector3(vel.x, 0.0f, vel.y);
 
         if (!vel3.Equals(Vector3.zero)) {
-            //m_rigidbody.AddForce(50 * vel3, ForceMode.Acceleration);
+            //m_rigidbody.AddForce(vel3, ForceMode.Acceleration);
 
             m_rigidbody.MovePosition(gameObject.transform.position + Time.fixedDeltaTime * vel3);
         }

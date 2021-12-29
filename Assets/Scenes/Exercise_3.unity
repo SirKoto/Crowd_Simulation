@@ -252,6 +252,7 @@ MonoBehaviour:
   m_num_agents: 20
   m_floor: {fileID: 168122958}
   m_gameObject_to_instance: {fileID: 7924560852117236784, guid: d6a88f75cada4cd4085635bdd9b9ed4f, type: 3}
+  m_wall_gameObject: {fileID: 3559827146052754158, guid: 5dcc11453e6a991429cb6c2fe1c0e449, type: 3}
 --- !u!4 &691717713
 Transform:
   m_ObjectHideFlags: 0
