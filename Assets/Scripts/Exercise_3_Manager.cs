@@ -11,6 +11,15 @@ public class Exercise_3_Manager : MonoBehaviour
     private uint m_num_agents = 20;
 
     [SerializeField]
+    private int m_seed = 15;
+
+    [SerializeField, Range(0.0f, 0.5f)]
+    private float m_probability = 0.1f;
+
+    [SerializeField]
+    public bool m_use_bidirectional_search = true;
+
+    [SerializeField]
     private GameObject m_floor = null;
 
     [SerializeField]
@@ -112,12 +121,12 @@ public class Exercise_3_Manager : MonoBehaviour
 
         // Instantiate walls
         Vector3 offset = new Vector3(get_domain_half_size(), 0.0f, get_domain_half_size());
-        Random.InitState(15);
+        Random.InitState(m_seed);
         for (int i = 0; i < m_domain_size; ++i)
         {
             for(int j = 0; j < m_domain_size; ++j)
             {
-                if (Random.value < 0.1f)
+                if (Random.value < m_probability)
                 {
                     m_grid.add_obstacle(new Vector2Int(i, j));
                     Vector3 pos = new Vector3(i, 0.0f, j) - offset;

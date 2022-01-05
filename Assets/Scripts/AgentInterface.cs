@@ -15,8 +15,11 @@ public class AgentInterface : MonoBehaviour
 
     public void look_at(Vector2 dir)
     {
-        Vector3 new_dir = new Vector3(dir.x, 0.0f, dir.y);
-        gameObject.transform.forward = new_dir.normalized;
+        if (dir != Vector2.zero)
+        {
+            Vector3 new_dir = new Vector3(dir.x, 0.0f, dir.y);
+            gameObject.transform.forward = new_dir.normalized;
+        }
     }
 
     public void set_velocity(Vector2 vel)

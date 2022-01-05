@@ -75,6 +75,11 @@ public class Bot_SimpleGoalAI : MonoBehaviour
 
     private IEnumerator rotate_agent(Vector2 look_to, float duration)
     {
+        if (look_to == Vector2.zero)
+        {
+            yield break;
+        }
+
         Quaternion ini = gameObject.transform.rotation;
         Quaternion end = Quaternion.LookRotation(new Vector3(look_to.x, 0.0f, look_to.y));
 

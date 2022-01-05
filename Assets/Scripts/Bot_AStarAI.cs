@@ -75,7 +75,14 @@ public class Bot_AStarAI : MonoBehaviour
 
         m_goal_idx = 0;
         m_goal = m_goal_queue[m_goal_queue.Count - 1];
-        m_goal_queue = m_manager.m_grid.get_path_to_bidirectional(m_init + offset, m_goal + offset05);
+        if (m_manager.m_use_bidirectional_search)
+        {
+            m_goal_queue = m_manager.m_grid.get_path_to_bidirectional(m_init + offset, m_goal + offset05);
+        }
+        else
+        {
+            m_goal_queue = m_manager.m_grid.get_path_to(m_init + offset, m_goal + offset05);
+        }
 
         for (int i = 0; i < m_goal_queue.Count; ++i)
         {
@@ -111,8 +118,14 @@ public class Bot_AStarAI : MonoBehaviour
             Vector2 offset = new Vector2(m_manager.get_domain_half_size(), m_manager.get_domain_half_size());
             m_goal_idx = 0;
             m_goal = m_manager.get_random_empty_pos_0_size();
-            m_goal_queue = m_manager.m_grid.get_path_to_bidirectional(m_init + offset, m_goal);
-
+            if (m_manager.m_use_bidirectional_search)
+            {
+                m_goal_queue = m_manager.m_grid.get_path_to_bidirectional(m_init + offset, m_goal);
+            }
+            else
+            {
+                m_goal_queue = m_manager.m_grid.get_path_to(m_init + offset, m_goal);
+            }
             offset = new Vector2(m_manager.get_domain_half_size() - 0.5f, m_manager.get_domain_half_size() - 0.5f);
             for (int i = 0; i < m_goal_queue.Count; ++i)
             {
@@ -137,6 +150,12 @@ public class Bot_AStarAI : MonoBehaviour
 
     private IEnumerator rotate_agent(Vector2 look_to, float duration)
     {
+
+        if(look_to == Vector2.zero)
+        {
+            yield break;
+        }
+
         Quaternion ini = gameObject.transform.rotation;
         Quaternion end = Quaternion.LookRotation(new Vector3(look_to.x, 0.0f, look_to.y));
 
